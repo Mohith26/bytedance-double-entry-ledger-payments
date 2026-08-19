@@ -1,0 +1,30 @@
+{
+  "measured_at": "2026-08-19T05:31:55.764840Z",
+  "command_all": "go test -race -p 1 -count=1 ./...",
+  "race_flag": true,
+  "race_data_races_detected": 0,
+  "tests_total": 30,
+  "tests_passed": 30,
+  "tests_failed": 0,
+  "packages_ok": [
+    "money",
+    "ledger",
+    "store",
+    "ops",
+    "settle",
+    "api"
+  ],
+  "coverage_percent_by_package": {
+    "api": 50.0,
+    "ledger": 92.3,
+    "loadgen": 0.0,
+    "money": 89.7,
+    "ops": 71.6,
+    "settle": 78.8,
+    "store": 50.5,
+    "testhelp": 0.0
+  },
+  "coverage_note": "Per-package statement coverage. money/ledger (the pure invariant core) are highest; store/api are additionally exercised by ops/settle/api tests and the live load harness, which per-package coverage does not credit.",
+  "machine": "Apple M5 Pro, 18 cores, 24 GB RAM, macOS 25.4.0 (Darwin), Go 1.26.3",
+  "postgres": "PostgreSQL 16.14 (Homebrew) native at localhost:5432"
+}

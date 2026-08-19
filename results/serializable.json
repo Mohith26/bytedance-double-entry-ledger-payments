@@ -1,0 +1,50 @@
+{
+  "concurrency": {
+    "double_spends": 0,
+    "lost_updates": 0
+  },
+  "conservation": {
+    "final_net": 0,
+    "negative_balance_events": 0,
+    "samples_during_storm": 11308,
+    "violations": 0
+  },
+  "idempotency": {
+    "duplicate_postings": 0,
+    "exactly_once": 200,
+    "keys_tested": 200,
+    "submissions_total": 3200
+  },
+  "machine": {
+    "go_version": "go1.26.3",
+    "goos": "darwin",
+    "goarch": "arm64",
+    "num_cpu": 18,
+    "measured_at": "2026-08-19T05:29:25Z"
+  },
+  "performance": {
+    "elapsed_seconds": 6.439280833,
+    "latency_max_ms": 85.354,
+    "latency_mean_ms": 3.159,
+    "latency_p50_ms": 1.371,
+    "latency_p99_9_ms": 49.756,
+    "latency_p99_ms": 24.142,
+    "throughput_txns_per_sec": 4968.877865370778
+  },
+  "reconciliation": {
+    "drift_count": 0,
+    "ok": true,
+    "unbalanced_txns": 0
+  },
+  "workload": {
+    "accounts": 19,
+    "committed_transfers": 31996,
+    "insufficient_funds": 0,
+    "isolation_mode": "serializable",
+    "ops_per_worker": 2000,
+    "postings_total": 64024,
+    "seed": 42,
+    "transactions_total": 32012,
+    "workers": 16
+  }
+}
