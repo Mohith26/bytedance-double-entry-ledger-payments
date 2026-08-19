@@ -10,7 +10,7 @@
   "stack": "Go 1.26.3 (module baseline go 1.25), PostgreSQL 16.14 (native Homebrew, localhost:5432) via pgx v5, net/http (Go 1.22 method routing), go test -race, goroutine load harness. docker-compose.yml provided (Docker daemon was not running; native pg used per spec fallback).",
   "database": "native Homebrew PostgreSQL 16.14; databases ledgercore + ledgercore_test; trust auth; row-lock (READ COMMITTED + SELECT FOR UPDATE) default, SERIALIZABLE mode available",
   "metrics_captured": true,
-  "tests": "30 passed / 0 failed; go test -race clean (0 data races); coverage ledger 92.3% money 89.7% settle 78.8% ops 71.6% store 50.5% api 50.0%",
+  "tests": "35 passed / 0 failed; go test -race clean (0 data races); coverage ledger 92.3% money 89.7% settle 78.8% ops 71.6% store 45.4% api 50.0%",
   "bullets_filled": {
     "concurrent_transactions_conservation": "96000 (0 violations, 17213 mid-storm samples)",
     "concurrent_workers": "32 headline / 64 adversarial",
@@ -23,7 +23,7 @@
     "throughput_tps": "9088.9 (machine-specific)",
     "latency_p50_p99_p999_ms": "1.77 / 23.84 / 68.39 (machine-specific)",
     "reconciliation_drift_net": "0 / 0",
-    "tests_passing": "30"
+    "tests_passing": "35"
   },
   "measurement_methodology": {
     "money_conservation": "monitor goroutine runs SUM(balance) GROUP BY currency (single consistent MVCC snapshot) 17213x DURING the 96000-transfer storm; every sample nets to 0 per currency and every shared-account MIN(balance) >= 0. Independently re-verified by the reconciliation job recomputing balances from the journal (SUM of postings) == cached balances, zero drift.",
@@ -43,5 +43,5 @@
   ],
   "repo_url": "https://github.com/Mohith26/bytedance-double-entry-ledger-payments",
   "private": true,
-  "notes": "All Must-have v1 delivered: immutable double-entry journal (balanced legs, debits==credits per currency), integer minor-units money (no floats), derived balances, transfer/payment/refund + multi-currency FX, idempotency keys (exactly-once), row-locked concurrency safety (no double-spend/lost-update/disallowed-negative), settlement batch (per-merchant netting w/ refunds -> payout) + reconciliation (zero drift), HTTP API (JSON envelope, Idempotency-Key), and a seeded Go concurrent load harness writing results/*.json. Should-have included: SERIALIZABLE-vs-row-lock comparison. Out of scope (not built): hold/capture auth, hash-chained audit log, outbox events, real PSP/bank rails, UI, sharding. KEY DECISION: native Postgres (Docker daemon not running); DATABASE_URL/TEST_DATABASE_URL configurable, docker-compose.yml provided as equivalent."
+  "notes": "All Must-have v1 delivered: immutable double-entry journal (balanced legs, debits==credits per currency), integer minor-units money (no floats), derived balances, transfer/payment/refund + multi-currency FX, idempotency keys (exactly-once), row-locked concurrency safety (no double-spend/lost-update/disallowed-negative), settlement batch (per-merchant netting w/ refunds -> payout) + reconciliation (zero drift), HTTP API (JSON envelope, Idempotency-Key), and a seeded Go concurrent load harness writing results/*.json. Should-have included: SERIALIZABLE-vs-row-lock comparison. Out of scope (not built): hold/capture auth, hash-chained audit log, outbox events, real PSP/bank rails, UI, sharding. KEY DECISION: native Postgres (Docker daemon not running); DATABASE_URL/TEST_DATABASE_URL configurable, docker-compose.yml provided as equivalent. CODE REVIEW: a background go-reviewer found ONE CRITICAL settlement double-pay race (net computed before merchant/payout row locks were held) — FIXED (RunSettlement now locks merchant+payout FOR UPDATE and computes net under locks) + regression test TestConcurrentSettlementPaysExactlyOnce (16 concurrent runs -> paid once); idempotency/posting-locks/refund-bound/FX math reviewed sound."
 }

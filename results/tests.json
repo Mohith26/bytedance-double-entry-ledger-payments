@@ -1,10 +1,10 @@
 {
-  "measured_at": "2026-08-19T05:31:55.764840Z",
+  "measured_at": "2026-08-19T05:50:05Z",
   "command_all": "go test -race -p 1 -count=1 ./...",
   "race_flag": true,
   "race_data_races_detected": 0,
-  "tests_total": 30,
-  "tests_passed": 30,
+  "tests_total": 35,
+  "tests_passed": 35,
   "tests_failed": 0,
   "packages_ok": [
     "money",
@@ -21,10 +21,11 @@
     "money": 89.7,
     "ops": 71.6,
     "settle": 78.8,
-    "store": 50.5,
+    "store": 45.4,
     "testhelp": 0.0
   },
   "coverage_note": "Per-package statement coverage. money/ledger (the pure invariant core) are highest; store/api are additionally exercised by ops/settle/api tests and the live load harness, which per-package coverage does not credit.",
+  "code_review": "A background go-reviewer flagged one CRITICAL settlement double-pay race (net computed before the merchant/payout row locks were held). Fixed: RunSettlement now locks all merchant+payout accounts FOR UPDATE and computes the net UNDER the locks; regression test TestConcurrentSettlementPaysExactlyOnce (16 concurrent settlement runs -> paid exactly once) added.",
   "machine": "Apple M5 Pro, 18 cores, 24 GB RAM, macOS 25.4.0 (Darwin), Go 1.26.3",
   "postgres": "PostgreSQL 16.14 (Homebrew) native at localhost:5432"
 }

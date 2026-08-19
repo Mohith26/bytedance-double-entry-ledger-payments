@@ -27,8 +27,8 @@
 - Sustained **9,089 transactions/sec at p99 23.8 ms** ⚙️ under 32 concurrent
   workers, with a **reconciliation job proving zero drift** (journal-recomputed
   balances == stored, system net == 0, 0 unbalanced txns) across settlement,
-  verified by **30 passing tests** (`go test -race`).
-  <br>_(MEASURED: throughput 9,088.9 tps, p50 1.77 / p99 23.84 / p99.9 68.39 ms; reconciliation drift = 0, net = 0; 30/30 tests pass. ⚙️ throughput/latency are hardware-dependent — Apple M5 Pro, native localhost Postgres, no network hop.)_
+  verified by **35 passing tests** (`go test -race`).
+  <br>_(MEASURED: throughput 9,088.9 tps, p50 1.77 / p99 23.84 / p99.9 68.39 ms; reconciliation drift = 0, net = 0; 35/35 tests pass. ⚙️ throughput/latency are hardware-dependent — Apple M5 Pro, native localhost Postgres, no network hop.)_
 
 ## Measured-value ledger
 
@@ -44,7 +44,7 @@
 | throughput ⚙️ | **9,088.9 txns/sec** | MEASURED (machine-specific) |
 | p50 / p99 / p99.9 ⚙️ | **1.77 / 23.84 / 68.39 ms** | MEASURED (machine-specific) |
 | reconciliation drift / net | **0 / 0** | MEASURED |
-| tests | **30 passed / 0 failed** | MEASURED |
+| tests | **35 passed / 0 failed** | MEASURED |
 
 ## Honesty tags
 

@@ -151,10 +151,10 @@ go test -race -p 1 -count=1 ./...
 
 | Metric | Value |
 |---|---|
-| Test functions | **30 passed / 0 failed** |
+| Test functions | **35 passed / 0 failed** |
 | `go test -race` | **clean — 0 data races detected** |
 | Coverage (pure invariant core) | ledger **92.3%**, money **89.7%** |
-| Coverage (other) | settle 78.8%, ops 71.6%, store 50.5%, api 50.0% |
+| Coverage (other) | settle 78.8%, ops 71.6%, store 45.4%, api 50.0% |
 
 Coverage note: `store`/`api` per-package numbers are lower because much of that
 code is exercised by the `ops`/`settle`/`api` integration tests and the live load
@@ -171,6 +171,20 @@ harness, which per-package coverage does not credit.
 | Transfers committed (headline) | **96,000** |
 | Concurrent duplicate submissions (idempotency) | **16,000** |
 | Insufficient-funds rejections withstood (contention) | **31,158** |
+
+## Code review (honest: a real bug was found and fixed)
+
+An automated Go concurrency reviewer read the whole write path. Idempotency,
+the row-locked posting path, the refund bound, and the FX math were found sound.
+It **did** catch one **CRITICAL** bug: the original settlement computed each
+merchant's net with an *unlocked* read and only took row locks for the *write*,
+so two overlapping `/settle` runs (or a refund landing mid-settlement) could
+**double-pay** a merchant. **Fixed:** `RunSettlement` now locks all merchant +
+payout accounts `FOR UPDATE` and computes the net **under** those locks
+(payments and refunds also lock the merchant row, so they serialize). Regression
+test `TestConcurrentSettlementPaysExactlyOnce` fires **16 concurrent settlement
+runs** at one pending payment and asserts it is paid out **exactly once** — it
+now passes race-clean. Reported here rather than hidden.
 
 ## Honest limitations / notes
 

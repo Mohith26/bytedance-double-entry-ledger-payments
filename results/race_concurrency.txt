@@ -1,7 +1,11 @@
 === RUN   TestConcurrentTransfersConserveMoney
     concurrency_test.go:88: concurrent transfers: ok=6390 insufficient=10 (workers=16)
---- PASS: TestConcurrentTransfersConserveMoney (1.17s)
+--- PASS: TestConcurrentTransfersConserveMoney (1.28s)
 === RUN   TestIdempotentReplayConcurrent
---- PASS: TestIdempotentReplayConcurrent (0.02s)
+--- PASS: TestIdempotentReplayConcurrent (0.03s)
 PASS
-ok  	github.com/Mohith26/bytedance-double-entry-ledger-payments/internal/store	2.431s
+ok  	github.com/Mohith26/bytedance-double-entry-ledger-payments/internal/store	2.725s
+=== RUN   TestConcurrentSettlementPaysExactlyOnce
+--- PASS: TestConcurrentSettlementPaysExactlyOnce (0.05s)
+PASS
+ok  	github.com/Mohith26/bytedance-double-entry-ledger-payments/internal/settle	1.287s
