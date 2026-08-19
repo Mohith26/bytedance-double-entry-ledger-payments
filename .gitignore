@@ -1,0 +1,25 @@
+# Go build artifacts
+/ledgerd
+/loadgen
+*.exe
+*.test
+*.out
+/bin/
+
+# Local Postgres data (if using the docker-compose service)
+/pgdata/
+/.postgres-data/
+
+# Env / secrets
+.env
+.env.*
+*.local
+
+# Coverage
+coverage.out
+*.cover
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/

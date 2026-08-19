@@ -1,0 +1,33 @@
+# Postgres for LedgerCore.
+#
+# NOTE ON THIS BUILD'S MEASUREMENTS: the committed results were measured against
+# a NATIVE Homebrew Postgres 16.14 on localhost:5432 because the Docker daemon
+# was not running on the build machine (see RESULTS.md). This compose file is
+# the portable, one-command alternative and is functionally equivalent: it
+# stands up Postgres 16 on the same port with the ledgercore + ledgercore_test
+# databases pre-created.
+#
+#   docker compose up -d
+#   export DATABASE_URL='postgres://ledger:ledger@localhost:5432/ledgercore?sslmode=disable'
+#   export TEST_DATABASE_URL='postgres://ledger:ledger@localhost:5432/ledgercore_test?sslmode=disable'
+services:
+  postgres:
+    image: postgres:16
+    container_name: ledgercore-pg
+    environment:
+      POSTGRES_USER: ledger
+      POSTGRES_PASSWORD: ledger
+      POSTGRES_DB: ledgercore
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ledger -d ledgercore"]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+
+volumes:
+  pgdata:
