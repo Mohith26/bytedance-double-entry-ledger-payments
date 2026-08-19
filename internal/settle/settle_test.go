@@ -2,12 +2,14 @@ package settle_test
 
 import (
 	"context"
+	"sync"
 	"testing"
 
 	"github.com/Mohith26/bytedance-double-entry-ledger-payments/internal/ledger"
 	"github.com/Mohith26/bytedance-double-entry-ledger-payments/internal/money"
 	"github.com/Mohith26/bytedance-double-entry-ledger-payments/internal/ops"
 	"github.com/Mohith26/bytedance-double-entry-ledger-payments/internal/settle"
+	"github.com/Mohith26/bytedance-double-entry-ledger-payments/internal/store"
 	"github.com/Mohith26/bytedance-double-entry-ledger-payments/internal/testhelp"
 )
 
@@ -74,6 +76,76 @@ func TestSettlementNetsAndReconcilesZeroDrift(t *testing.T) {
 	}
 	if res2.ItemCount != 0 {
 		t.Fatalf("second settlement item_count = %d, want 0", res2.ItemCount)
+	}
+}
+
+// TestConcurrentSettlementPaysExactlyOnce proves the settlement race fix: N
+// settlement runs fired simultaneously against the same pending payments pay the
+// merchant out exactly once (no double-pay), with money conserved and zero drift.
+func TestConcurrentSettlementPaysExactlyOnce(t *testing.T) {
+	st := testhelp.NewStore(t)
+	svc := ops.New(st)
+	infra, err := svc.EnsureInfra(bg(), []money.Currency{"USD"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	world := infra["USD"].World
+	payout, _ := st.GetAccountByName(bg(), "payout:USD")
+
+	m, _ := st.CreateAccount(bg(), "merchant-conc", "USD", ledger.KindMerchant, false)
+	if _, err := svc.Payment(bg(), "p", world, m.ID, 10000, "USD"); err != nil {
+		t.Fatal(err)
+	}
+
+	const runs = 16
+	var wg sync.WaitGroup
+	var mu sync.Mutex
+	results := make([]store.SettlementResult, 0, runs)
+	errs := make([]error, 0)
+	wg.Add(runs)
+	for i := 0; i < runs; i++ {
+		go func() {
+			defer wg.Done()
+			r, err := settle.Settle(bg(), st)
+			mu.Lock()
+			defer mu.Unlock()
+			if err != nil {
+				errs = append(errs, err)
+				return
+			}
+			results = append(results, r)
+		}()
+	}
+	wg.Wait()
+
+	if len(errs) != 0 {
+		t.Fatalf("unexpected settlement errors: %v", errs)
+	}
+	// Exactly one run should have paid out; the rest settle nothing.
+	paidRuns, totalItems, totalNet := 0, 0, int64(0)
+	for _, r := range results {
+		if r.ItemCount > 0 {
+			paidRuns++
+			totalItems += r.ItemCount
+			totalNet += r.NetTotal
+		}
+	}
+	if paidRuns != 1 || totalItems != 1 || totalNet != 10000 {
+		t.Fatalf("expected exactly one paying run of 1 item/10000, got paidRuns=%d items=%d net=%d",
+			paidRuns, totalItems, totalNet)
+	}
+	// The payout account received the money exactly once; merchant is flat.
+	pb, _ := st.GetAccount(bg(), payout.ID)
+	mb, _ := st.GetAccount(bg(), m.ID)
+	if pb.Balance != 10000 {
+		t.Fatalf("payout balance = %d, want 10000 (paid exactly once)", pb.Balance)
+	}
+	if mb.Balance != 0 {
+		t.Fatalf("merchant balance = %d, want 0", mb.Balance)
+	}
+	rep, _ := settle.Reconcile(bg(), st)
+	if !rep.OK {
+		t.Fatalf("reconcile not OK after concurrent settlement: %+v", rep)
 	}
 }
 
